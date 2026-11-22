@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Mobile 3D Runner</title>
+<style>
+body { margin: 0; overflow: hidden; background-color: #000; touch-action: none; }
+#canvas-container { width: 100vw; height: 100vh; display: block; }
+</style>
+</head>
+<body>
+<div id="canvas-container"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const container = document.getElementById('canvas-container');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth /
+window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+container.appendChild(renderer.domElement);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambientLight);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+directionalLight.position.set(5, 10, 7);
+scene.add(directionalLight);
+const playerGeometry = new THREE.BoxGeometry(1, 2, 1);
+const playerMaterial = new THREE.MeshStandardMaterial({ color: 0x0000ff });
+const player = new THREE.Mesh(playerGeometry, playerMaterial);
+player.position.set(0, 1, 0);
+scene.add(player);
+const trackGeometry = new THREE.PlaneGeometry(10, 1000); const trackMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+const track = new THREE.Mesh(trackGeometry, trackMaterial);
+track.rotation.x = -Math.PI / 2;
+track.position.set(0, 0, -500);
+scene.add(track);
+camera.position.set(0, 3, 5);
+camera.lookAt(0, 1, 0);
+const lanes = [-2, 0, 2];
+let currentLane = 1;
+let touchStartX = 0;
+window.addEventListener('touchstart', (e) => {
+touchStartX = e.touches[0].clientX;
+});
+window.addEventListener('touchend', (e) => {
+const touchEndX = e.changedTouches[0].clientX;
+const diffX = touchEndX - touchStartX;
+if (Math.abs(diffX) > 50) {
+if (diffX > 0 && currentLane < 2) {
+currentLane++;
+} else if (diffX < 0 && currentLane > 0) {
+currentLane--;
+}
+player.position.x = lanes[currentLane];
+}
+});
+const clock = new THREE.Clock();
+function animate() {
+requestAnimationFrame(animate);
+track.position.z += 0.5;
+if (track.position.z > 0) track.position.z = -500;
+renderer.render(scene, camera); }
+animate();
+window.addEventListener('resize', () => {
+camera.aspect = window.innerWidth / window.innerHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
